@@ -34,24 +34,43 @@ Two-fault models:
 
 ### Model postprocessing and analysis scripts
 1. utils.py
+   
     Functions required to run the Jupyter Notebooks.
-2. model_visualizer.ipynb
-   Visualize model outputs and calculate alignment and correlation coefficients. 
-3. single_fault_benchmark.ipynb
+   
+4. model_visualizer.ipynb
+   
+   Visualize model outputs and calculate alignment and correlation coefficients.
+   
+7. single_fault_benchmark.ipynb
+   
    Visualie and analyze single fault benchmarks.
-4. single_fault_benchmark_times.ipynb
-   Measure interevent times for a single fault benchmark. 
-5. two_fault_times.ipynb
+   
+9. single_fault_benchmark_times.ipynb
+    
+   Measure interevent times for a single fault benchmark.
+   
+11. two_fault_times.ipynb
+
    Measure interevent times for a two fault model. 
-6. map_observations.ipynb
+  
+13. map_observations.ipynb
+    
     Make map of sites with observations of synchronization and alternation from   paleoseismic chronologies and incremental slip rates. Make illustration of sync and alternation behaviors.
-7. comparison_inter_event_times.ipynb
+    
+15. comparison_inter_event_times.ipynb
+    
    Compare interevent times for each two fault model and the corresponding single fault benchmark for the same value of Ru.
-8. evolution_interaction_metrics_with_time.ipynb
+   
+17. evolution_interaction_metrics_with_time.ipynb
+    
    Plot evolution of the alignment and correlation coefficients for a model with its corresponding catalog.
-9. measure_alignment_corr_coeff_data.ipynb
+   
+19. measure_alignment_corr_coeff_data.ipynb
+    
     Measure alignment and correlation coefficients for geologic datasets.
-10. corr_metrics_stress_analysis.ipynb
+    
+21. corr_metrics_stress_analysis.ipynb
+    
     Plot complete model phase space, correlation and alignment coefficients for geologic datasets, and Coulomb stress analysis.
    
 ### Contact
