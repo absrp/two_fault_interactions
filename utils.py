@@ -17,10 +17,9 @@ import glob
 from scipy.stats import pearsonr
 
 
-
-def seconds_to_years(year_n):
-    seconds_per_year = year_n / (365.25 * 24 * 3600)
-    return seconds_per_year
+def seconds_to_years(seconds):
+    years = seconds / (365.25 * 24 * 3600)
+    return years
 
 def find_events(masked_grid, DX, N2, plotYN):
     binary_mask = ~np.isnan(masked_grid)
@@ -203,22 +202,6 @@ def fit_and_plot_combined_line(fault1_times_length, fault2_times_length):
     )
     plt.gca().add_artist(legend2)
     return slope, intercept, r_value
-
-
-def calculate_h_2D(G, L, b, a, sigma):
-    h_2D_star = (2 * G * L * b) / (
-        math.pi * sigma * (b - a) ** 2
-    )  # Rubin and Ampuero 2D 2005
-    return h_2D_star
-
-
-def cycle_duration(b, a, sigma, G, Vpl, Lweak, L, D, Vdyn):
-    t = (
-        (((b - a) * sigma) / (G * Vpl))
-        * np.sqrt((Lweak - (Lweak - calculate_h_2D(G, L, b, a, sigma))) * D)
-        * np.log(Vdyn / Vpl)
-    )
-    return t
 
 
 def cycles_colormap(m=None):
@@ -409,27 +392,15 @@ def get_order_parameter(phases):
     return order_real
 
 
-def measure_intevent_time_f(times):
+def measure_interevent_time_f(times):
     times = times
     sorted_times = np.sort(times)
     interevent_times = np.diff(sorted_times)
     return interevent_times
 
 
-def get_phase_unbounded(tq, t: np.ndarray):
-    dt = t - tq
-    closest_idx = np.argmin(np.abs(dt))  # closest event in time sequence
-    cycle_period = np.mean(np.diff(t))
-    # calc how many cycles away from the closest event
-    cycles_away = dt[closest_idx] / cycle_period
-    phase = (cycles_away % 1) * 2 * np.pi
-
-    return phase
-
 
 def markdown_table_to_pdf(markdown_table, output_pdf="table.pdf"):
-    # markdown table to pandas df
-    # First, split the table into lines and remove empty lines
     lines = [
         line.strip() for line in markdown_table.strip().split("\n") if line.strip()
     ]
@@ -522,7 +493,6 @@ def Griffin_plot_interevent_times(interevent_times_df, ax, marker_shapes, dc_col
             edgecolor="none",
         )
 
-
 ### functions for processing paleoseismic data
 
 
@@ -580,12 +550,14 @@ def alignment_MC(fault1_tmin, fault1_tmax, fault2_tmin, fault2_tmax, n_mc=1000):
 
     def _summarise(samples, midpoint):
         if len(samples) == 0:
-            return dict(midpoint=np.nan, p5=np.nan, p95=np.nan, n_valid=0)
+            return dict(midpoint=np.nan, p5=np.nan, p95=np.nan, n_valid=0,
+                        samples=np.array([]))
         return {
             "midpoint": midpoint,
             "p5": np.percentile(samples, 5),
             "p95": np.percentile(samples, 95),
             "n_valid": len(samples),
+            "samples": np.asarray(samples),
         }
 
     return {
@@ -594,11 +566,40 @@ def alignment_MC(fault1_tmin, fault1_tmax, fault2_tmin, fault2_tmax, n_mc=1000):
     }
 
 
-def slip_rate_correlation_MC(f1_upper, f1_lower, f2_upper, f2_lower, n_mc=1000):
+def slip_rate_correlation_MC(
+    f1_upper, f1_lower, f2_upper, f2_lower,
+    uncertainty_fraction=0.20, n_mc=1000,
+):
     times = np.union1d(
         np.union1d(f1_upper["time"], f1_lower["time"]),
         np.union1d(f2_upper["time"], f2_lower["time"]),
     )
+
+    # restrict to overlapping time range between the two slip rates
+    t_lo = max(
+        f1_upper["time"].min(), f1_lower["time"].min(),
+        f2_upper["time"].min(), f2_lower["time"].min(),
+    )
+    t_hi = min(
+        f1_upper["time"].max(), f1_lower["time"].max(),
+        f2_upper["time"].max(), f2_lower["time"].max(),
+    )
+    if t_lo >= t_hi:
+        return dict(corr_mean=np.nan, corr_p5=np.nan, corr_p95=np.nan,
+                    samples=np.array([]),
+                    times=np.array([]),
+                    s1_samples=np.empty((0, 0)), s2_samples=np.empty((0, 0)),
+                    f1_lo=np.array([]), f1_hi=np.array([]),
+                    f2_lo=np.array([]), f2_hi=np.array([]))
+    times = times[(times >= t_lo) & (times <= t_hi)]
+    if len(times) < 3:
+            return dict(corr_mean=np.nan, corr_p5=np.nan, corr_p95=np.nan,
+                        samples=np.array([]),
+                        times=np.array([]),
+                        s1_samples=np.empty((0, 0)),
+                        s2_samples=np.empty((0, 0)),
+                        f1_lo=np.array([]), f1_hi=np.array([]),
+                        f2_lo=np.array([]), f2_hi=np.array([]))
 
     f1u_sort = np.argsort(f1_upper["time"])
     f1l_sort = np.argsort(f1_lower["time"])
@@ -613,7 +614,19 @@ def slip_rate_correlation_MC(f1_upper, f1_lower, f2_upper, f2_lower, n_mc=1000):
     f1_lo, f1_hi = np.minimum(f1_lo, f1_hi), np.maximum(f1_lo, f1_hi)
     f2_lo, f2_hi = np.minimum(f2_lo, f2_hi), np.maximum(f2_lo, f2_hi)
 
+    # zero-width envelope (single slip value and age in OG paper) gets a synthetic uncertainty_fraction band around the central value
+    if np.allclose(f1_hi, f1_lo):
+        center = (f1_hi + f1_lo) / 2
+        half = uncertainty_fraction * np.abs(center)
+        f1_lo, f1_hi = center - half, center + half
+    if np.allclose(f2_hi, f2_lo):
+        center = (f2_hi + f2_lo) / 2
+        half = uncertainty_fraction * np.abs(center)
+        f2_lo, f2_hi = center - half, center + half
+
     corr_samples = []
+    s1_samples = []
+    s2_samples = []
 
     for _ in range(n_mc):
         s1 = f1_lo + np.random.uniform(0, 1, len(times)) * (f1_hi - f1_lo)
@@ -624,18 +637,30 @@ def slip_rate_correlation_MC(f1_upper, f1_lower, f2_upper, f2_lower, n_mc=1000):
 
         r, _ = pearsonr(s1, s2)
         corr_samples.append(r)
+        s1_samples.append(s1)
+        s2_samples.append(s2)
 
     if len(corr_samples) == 0:
-        return dict(corr_mean=np.nan, corr_std=np.nan, corr_p5=np.nan, corr_p95=np.nan)
+        return dict(corr_mean=np.nan, corr_p5=np.nan, corr_p95=np.nan,
+                    samples=np.array([]),
+                    times=times,
+                    s1_samples=np.empty((0, len(times))),
+                    s2_samples=np.empty((0, len(times))),
+                    f1_lo=f1_lo, f1_hi=f1_hi,
+                    f2_lo=f2_lo, f2_hi=f2_hi)
 
     corr_samples = np.array(corr_samples)
     return {
-        "corr_mean": np.mean(corr_samples),
-        "corr_std":  np.std(corr_samples),
-        "corr_p5":   np.percentile(corr_samples, 5),
-        "corr_p95":  np.percentile(corr_samples, 95),
+        "corr_mean":  np.mean(corr_samples),
+        "corr_p5":    np.percentile(corr_samples, 5),
+        "corr_p95":   np.percentile(corr_samples, 95),
+        "samples":    corr_samples,
+        "times":      times,
+        "s1_samples": np.array(s1_samples),
+        "s2_samples": np.array(s2_samples),
+        "f1_lo": f1_lo, "f1_hi": f1_hi,
+        "f2_lo": f2_lo, "f2_hi": f2_hi,
     }
-
 
 def moment_correlation_MC(
     f1_years, f1_rates, f2_years, f2_rates, uncertainty_fraction=0.20, n_mc=1000
@@ -661,12 +686,13 @@ def moment_correlation_MC(
         corr_samples.append(r)
 
     if len(corr_samples) == 0:
-        return dict(corr_mean=np.nan, corr_std=np.nan, corr_p5=np.nan, corr_p95=np.nan)
+        return dict(corr_mean=np.nan, corr_p5=np.nan, corr_p95=np.nan,
+                    samples=np.array([]))
 
     corr_samples = np.array(corr_samples)
     return {
         "corr_mean": np.mean(corr_samples),
-        "corr_std":  np.std(corr_samples),
         "corr_p5":   np.percentile(corr_samples, 5),
         "corr_p95":  np.percentile(corr_samples, 95),
+        "samples":   corr_samples,
     }
