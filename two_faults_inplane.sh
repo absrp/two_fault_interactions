@@ -8,7 +8,7 @@
 # ---------|--------|--------|--------|----------|----------|----------|----------|----------
 #  0.0100  |   20   |   4096 |  5000  |  37500   |  37500   |   960    |   960    |  81920
 #  0.0080  |   20   |   4096 |  5000  |  37500   |  37500   |   960    |   960    |  81920
-#  0.0063  |   20   |   4096 |  5000  |  37500   |  37500   |   960    |   960    |  81920
+#  0.0063  |   10   |   8192 |  5000  |  37500   |  37500   |   960    |   960    |  81920
 #  0.0050  |   10   |   8192 |  5000  |  37500   |  37500   |   960    |   960    |  81920
 #  0.0039  |   10   |   8192 |  5000  |  37500   |  37500   |   960    |   960    |  81920
 #  0.0030  |    5   |  16384 |  5000  |  37500   |  37500   |   960    |   960    |  81920
@@ -18,14 +18,14 @@
 # =============================================================================
 selfdir=$(dirname $0)
 
-N2=8192 # n points on grid
-DX=10  # cell size (m)
-Dc=0.0039
+N2=16384 # n points on grid
+DX=5  # cell size (m)
+Dc=0.002
 
 # fault spacing: 0.2e3 0.5e3 1e3 1.7e3 3e3 5e3 10e3 20e3 30e3 60e3 120e3
 
 for dist in 0.2e3 0.5e3 1e3 1.7e3 3e3 5e3 10e3 20e3 30e3 60e3 120e3; do
-    WDIR=$selfdir/inplane_two_fault/0039/output_Dc0039_${dist%e3}km
+    WDIR=$selfdir/inplane_two_fault/002/output_Dc002_${dist%e3}km
 
 	if [ ! -e $WDIR ]; then
 		echo adding directory "$WDIR"
@@ -34,7 +34,7 @@ for dist in 0.2e3 0.5e3 1e3 1.7e3 3e3 5e3 10e3 20e3 30e3 60e3 120e3; do
 	
 	# use --verbose=2 to output all parameters
 	# use --verbose=1 to output only parameters different from previous patch
-	OMP_NUM_THREADS=80 /home/alba/Documents/motorcycle/2d/planestrain/build/motorcycle-ps-ratestate-serial \
+	OMP_NUM_THREADS=100 /home/alba/Documents/motorcycle/2d/planestrain/build/motorcycle-ps-ratestate-serial \
 		--verbose 1 \
 		--verbose 1 \
 		--epsilon 1e-6 \
