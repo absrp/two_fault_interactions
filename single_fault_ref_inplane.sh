@@ -22,8 +22,8 @@ selfdir=$(dirname $0)
 
 N2=32768 # n points on grid
 DX=2.5 # cell size
-Dc=0.0014
-WDIR=$selfdir/single_fault_benchmark/output_Dc0014
+Dc=0.001
+WDIR=$selfdir/single_fault_benchmark/output_Dc001
 
 if [ ! -e $WDIR ]; then
 
