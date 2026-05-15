@@ -1,4 +1,6 @@
 ### Project description 
+Geological and historical records reveal a broad spectrum of earthquake recurrence patterns and temporal variability in fault slip rates. Two end-member interaction modes have been identified in fault networks: synchronization, where earthquakes on neighboring faults occur concurrently, and alternation, where strain accumulation and release are anti-correlated in time. We model two one-dimensional parallel faults governed by rate-and-state friction to evaluate the range of recurrence patterns and slip rate variability arising from elastic interactions alone. By systematically varying normalized fault spacing D/L and the instability ratio, we map the phase space of fault interactions. Synchronization develops under in-plane conditions at 0.6 < D/L < 12, while alternation and alternating supercycles emerge for D/L < 1. Interaction style is primarily controlled by D/L, with higher instability ratios eventually blurring the signature of fault interactions. Phase transitions correspond to the sign and magnitude of Coulomb stress perturbations on the receiver fault relative to the coseismic stress drop on the source fault. We develop quantitative metrics to compare model outputs with paleoseismic records and incremental slip rates, and show that synchronization and alternating supercycles inferred from the geologic record can largely be predicted from fault geometry alone.
+
 This repository contains a set of Jupyter Notebooks to analyze the outputs of boundary element code Motorcycle. These scripts can be used to reproduce the analysis in Rodriguez Padilla et al. (in review). 
 
 ### Motorcycle input files
@@ -72,15 +74,22 @@ Two-fault models:
 21. corr_metrics_stress_analysis.ipynb
     
     Plot complete model phase space, correlation and alignment coefficients for geologic datasets, and Coulomb stress analysis.
-   
+
+The two mathematica files can be used to compute and plot the antiplane and in plane stress kernels. Notebooks by Alexis Saez.
+
+### Authors
+Alba Rodriguez Padilla
+Alexis Saez
+Jean-Philippe Avouac
+
 ### Contact
 Please direct any questions, suggestions or concerns to: 
 
-Email - alba.rodriguez@usu.edu, alba@caltech.edu
+Email - alba.rodriguez@usu.edu, alba@caltech.edu, amrodriguezpadilla@gmail.com
 Website - [absrp@github.io](absrp@github.io)
 
 ### Acknowledgements
-We thank Sylvain Barbot for responding to questions about Motorcycle
+We thank Sylvain Barbot for responding to questions about Motorcycle and Scott Dungan for his support in using the Caltech GPS computing servers.
 
 ### Manuscript link
 Stay tuned!
