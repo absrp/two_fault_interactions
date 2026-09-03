@@ -92,4 +92,4 @@ Website - [absrp@github.io](absrp@github.io)
 We thank Sylvain Barbot for responding to questions about Motorcycle and Scott Dungan for his support in using the Caltech GPS computing servers.
 
 ### Manuscript link
-Stay tuned!
+Stay tuned! Pre-print available here [https://essopenarchive.org/doi/full/10.22541/essoar.15004063/v1](https://essopenarchive.org/doi/full/10.22541/essoar.15004063/v1)
